@@ -13,7 +13,8 @@ os.system('modprobe w1-therm')
 
 parser = argparse.ArgumentParser(
         description="A brewing temperatur controller. \n\
-Reads the temperatur from the sensors, turns on/off the heating element to reach the target temperatur.",
+Reads the temperatur from the sensors, turns on/off the heating element to reach the target temperatur. \n\
+Prints temperaturs without any options",
         formatter_class=RawTextHelpFormatter)
 parser.add_argument("-d", "--duration", help="time to hold the temp in minutes")
 parser.add_argument("-t", "--temp", help="target temp")
@@ -34,8 +35,6 @@ GPIO.setup(GPIO_HEAT, GPIO.OUT)
 #duration in seconds
 if args.duration:
     duration = 60 * int(args.duration)
-else:
-    duration = 60 * 60 * 24
 
 try:
     start_time = time.monotonic()
@@ -50,9 +49,9 @@ try:
             sensor_file.close()
             secondline = output.split("\n")[1]
             temp = float(secondline.split("t=")[1]) / 1000 + TEMP_OFFSET
-            avg_temp = avg_temp + temp
+            avg_temp += temp
             print("t{0}: {1}\t".format(i, str(temp)), end='')
-            i += i + 1
+            i += 1
         
         avg_temp = avg_temp / len(temp_sensors)
         print("avg: {0}".format(str(avg_temp)), end='')
@@ -65,10 +64,10 @@ try:
                 GPIO.output(GPIO_HEAT, GPIO.LOW)
 
         if GPIO.input(GPIO_HEAT):
-            print("\t HEATER:" + "\033[1;31;402m" + u"\u25CF" + "\033[0m", end='')
+            print(u"\t Heater:\033[1;31;402m\u25CF \033[0m", end='')
         else:
-            print("\t HEATER:" + u"\u25CF", end='')
-        print("\t " + str(subprocess.getoutput("date").strip()), end='')
+            print(u"\t Heater:\u2716", end='')
+        print("\t ", str(subprocess.getoutput("date").strip()), end='')
 
         if args.duration:
             seconds_elapsed = time.monotonic() - start_time
